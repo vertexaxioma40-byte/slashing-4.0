@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERTEX AXIOMA | Consola de Slashing & Smart-Settle 4.0</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --accent-cyan: #38bdf8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 1.5rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .metric-box {
+            background: #080c14;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: var(--font-mono);
+        }
+
+        .metric-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-top: 0.25rem;
+        }
+
+        .metric-value.danger { color: var(--danger-color); }
+        .metric-value.success { color: var(--success-color); }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: #080c14;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-slash {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .btn-slash:hover {
+            background: var(--danger-color);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-settle {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-settle:hover {
+            background: var(--success-color);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Console Terminal Output */
+        .terminal {
+            background: #050811;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            height: 250px;
+            overflow-y: auto;
+            color: #a7f3d0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .terminal-line {
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+        }
+
+        .terminal-line.error { color: var(--danger-color); }
+        .terminal-line.warn { color: var(--warning-color); }
+        .terminal-line.info { color: var(--accent-cyan); }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">← Volver a la Plataforma Principal</a>
+
+        <header class="header">
+            <h1>⚡ Consola de Slashing & Smart-Settle 4.0</h1>
+            <p>Módulo Transversal de Garantía Criptoeconómica y Ejecución Automática de Penalizaciones On-Chain</p>
+        </header>
+
+        <div class="grid-dashboard">
+            
+            <!-- Estado del Contrato Inteligente -->
+            <div class="card">
+                <h3>📜 Estado del Stake & Garantía</h3>
+                
+                <div class="metric-box">
+                    <div class="metric-title">Garantía en Escrow (Stake Activo)</div>
+                    <div class="metric-value" id="stake-amount">50,000 USDT</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-title">Tasa de Invalidez / Alteración (Terror)</div>
+                    <div class="metric-value success" id="terror-rate">0.00%</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-title">Estado del Contrato</div>
+                    <div class="metric-value success" id="contract-status" style="font-size: 1.1rem;">EN_ESCROW_AUDITADO</div>
+                </div>
+            </div>
+
+            <!-- Panel de Control y Simulación -->
+            <div class="card">
+                <h3>🎮 Simulación de Eventos</h3>
+
+                <div class="form-group">
+                    <label for="peritaje-select">Simular Resultado de Peritaje:</label>
+                    <select id="peritaje-select">
+                        <option value="valid">✅ Peritaje Íntegro (0% Alteración)</option>
+                        <option value="anomaly">⚠️ Discrepancia Menor (5% Anormalidad)</option>
+                        <option value="tampered">🚨 Evidencia Alterada / Colusión (100% Fraude)</option>
+                    </select>
+                </div>
+
+                <button class="btn-action btn-settle" onclick="ejecutarSmartSettle()">
+                    🟢 Ejecutar Smart-Settle (Liberación)
+                </button>
+
+                <button class="btn-action btn-slash" onclick="ejecutarSlashingForzado()">
+                    💥 Forzar Slashing (Confiscación de Stake)
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Terminal de Salida On-Chain -->
+        <div class="card">
+            <h3>🖥️ Registros de Ejecución On-Chain (Logs)</h3>
+            <div class="terminal" id="terminal-log">
+                <div class="terminal-line info">[SISTEMA] Contrato Inteligente SmartSettleSlasher v4.0 inicializado.</div>
+                <div class="terminal-line info">[NETWORK] Conectado a Polygon PoS Mainnet - Bloque #6294012.</div>
+                <div class="terminal-line">[STAKE] Stake de garantía verificado: 50,000 USDT bajo custodia del contrato.</div>
+                <div class="terminal-line">[READY] Esperando instrucción de firma criptográfica o resolución de peritaje...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let stakeVal = 50000;
+
+        function logTerminal(message, type = '') {
+            const terminal = document.getElementById('terminal-log');
+            const line = document.createElement('div');
+            line.className = `terminal-line ${type}`;
+            const timestamp = new Date().toISOString().split('T')[1].slice(0, 8);
+            line.textContent = `[${timestamp}] ${message}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function ejecutarSmartSettle() {
+            const select = document.getElementById('peritaje-select').value;
+            const terrorElem = document.getElementById('terror-rate');
+            const statusElem = document.getElementById('contract-status');
+
+            if (stakeVal <= 0) {
+                logTerminal('ERROR: El stake actual es 0 USDT. Imposible ejecutar liquidación.', 'error');
+                return;
+            }
+
+            if (select === 'valid') {
+                terrorElem.textContent = '0.00%';
+                terrorElem.className = 'metric-value success';
+                statusElem.textContent = 'FONDOS_LIBERADOS';
+                statusElem.className = 'metric-value success';
+
+                logTerminal('VERIFICACIÓN: Hash de evidencia 100% inmutable. Merkle Root válido.', 'info');
+                logTerminal(`SMART-SETTLE: Liberando ${stakeVal} USDT a la cuenta del prestador autorizada.`, 'info');
+                logTerminal('TX HASH: 0x8f2c...41e9 [CONFIRMADA EN BLOQUE]', 'info');
+
+            } else if (select === 'anomaly') {
+                terrorElem.textContent = '5.20%';
+                terrorElem.className = 'metric-value warn';
+                statusElem.textContent = 'OBSERVADO_RETENCION';
+                statusElem.className = 'metric-value warn';
+
+                logTerminal('ADVERTENCIA: Se detectó una discrepancia de telemetría del 5.20%.', 'warn');
+                logTerminal('ACCION: Fondos retenidos temporalmente. Requerida segunda firma de arbitraje.', 'warn');
+
+            } else if (select === 'tampered') {
+                ejecutarSlashingForzado();
+            }
+        }
+
+        function ejecutarSlashingForzado() {
+            const terrorElem = document.getElementById('terror-rate');
+            const statusElem = document.getElementById('contract-status');
+            const stakeElem = document.getElementById('stake-amount');
+
+            if (stakeVal <= 0) {
+                logTerminal('SLASHING CANCELADO: El Stake ya fue confiscado previamente.', 'error');
+                return;
+            }
+
+            terrorElem.textContent = '100.00%';
+            terrorElem.className = 'metric-value danger';
+            statusElem.textContent = 'PENALIZADO_SLASHED';
+            statusElem.className = 'metric-value danger';
+
+            logTerminal('🚨 TERROR DETECTADO: Evidencia o informe alterado. Tasa de Invalidez 100%.', 'error');
+            logTerminal(`💥 SLASHING EJECUTADO: Confiscando ${stakeVal} USDT del Stake de garantía.`, 'error');
+            
+            stakeVal = 0;
+            stakeElem.textContent = '0 USDT (Slashed)';
+            stakeElem.classList.add('danger');
+
+            logTerminal('REPARTICION: 80% quemado / 20% transferido al Fondo Afectado de Garantía.', 'error');
+            logTerminal('TX HASH: 0xef11...33aa [SLASHING CONFIRMADO ON-CHAIN]', 'error');
+        }
+    </script>
+</body>
+</html>
